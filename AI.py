@@ -40,3 +40,67 @@ class AI ( Agent ):
         self.__numberOfArrows = arrows
         self.__isInLoop = False
         pass
+    
+    def decideAction( self, stench, breeze, glitter, bump, scream ):
+        self.__check_bump(bump)
+        self.__update_history_tiles()
+        self.__moves+=1
+        return self.__determineAction(stench, breeze, glitter, bump, scream)
+    
+    class Node:
+        def __init__(self, x,y):
+            self.__node = (x,y)
+            self.__Nnode = (x,y+1)
+            self.__Enode = (x+1,y)
+            self.__Snode = (x,y-1)
+            self.__Wnode = (x-1,y)
+        def getCurrent(self):
+            return self.__node
+        def getNorth(self):
+            return self.__Nnode
+        def getEast(self):
+            return self.__Enode
+        def getSouth(self):
+            return self.__Snode
+        def getWest(self):
+            return self.__Wnode
+        def getX(self):
+            return self.__node[0]
+        def getY(self):
+            return self.__node[1]
+        
+    def __getExploredAllSafeNodes(self):
+         for i in range(len(self.__safe_tiles)):
+            node = self.__safe_tiles[len(self.__safe_tiles)-i-1]
+            if node not in self.__tile_history:
+                return False
+         return True
+
+    def __Facing_Wump(self):
+        if self.__dir == "N":
+            if self.__wump_node[1]>self.__y_tile:
+                return True
+            else:
+                return False
+        elif self.__dir == "E":
+            if self.__wump_node[0]>self.__x_tile:
+                return True
+            else:
+                return False
+        elif self.__dir == "S":
+            if self.__wump_node[1]<self.__y_tile:
+                return True
+            else:
+                return False
+        elif self.__dir == "W":
+            if self.__wump_node[0]<self.__x_tile:
+                return True
+            else:
+                return False
+        return True
+
+    def __Align_To_Wump(self,stench, breeze, glitter, bump, scream):
+        curNode = self.Node(self.__x_tile,self.__y_tile)
+        nextNode = self.Node(self.__wump_node[0], self.__wump_node[1])
+        self.__print_debug_info(stench, breeze, glitter, bump, scream)
+        return self.__NodeToNode(nextNode,curNode)
