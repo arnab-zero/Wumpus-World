@@ -106,6 +106,208 @@ class AI ( Agent ):
         return self.__NodeToNode(nextNode,curNode)
     
 
+    def __determineAction(self,stench, breeze, glitter, bump, scream ):
+        print("Dest Node: (", self.__dest_node, ") current node: ", self.__x_tile, self.__y_tile)
+        if scream:
+            if self.__wump_node == (0,0):
+                self.__wump_node = (2,1)
+            self.__UpdateSafeStench()
+            self.__dead_wump = True
+            if self.__wump_node not in self.__safe_tiles:
+                self.__safe_tiles.append(self.__wump_node)
+            found_node = False
+            for i in range(len(self.__safe_tiles)):
+                node = self.__safe_tiles[len(self.__safe_tiles)-i-1]
+                if node not in self.__tile_history:
+                    self.__dest_node = (node[0], node[1])
+                    self.__dest_path = self.__optimal_home_path(self.__x_tile,self.__y_tile,self.__dest_node[0],self.__dest_node[1])
+                    self.__stop_iteration = False
+                    found_node = True
+                    break
+            if not found_node:
+                print('loop156')
+                self.__revert_home = True
+            else:
+                self.__revert_home = False
+        elif self.__moves == 2 and stench == True and self.__shot_arrow:
+            self.__safe_tiles.append((2,1))
+            self.__wump_node = (1,2)
+            self.__potential_wump_nodes.append(self.__wump_node)
+            self.__numberOfWumpus-=1
+            if self.__numberOfWumpus < 1:
+                self.__found_wump = True
+            found_node = False
+            for i in range(len(self.__safe_tiles)):
+                node = self.__safe_tiles[len(self.__safe_tiles)-i-1]
+                if node not in self.__tile_history:
+                    self.__dest_node = (node[0], node[1])
+                    self.__dest_path = self.__optimal_home_path(self.__x_tile,self.__y_tile,self.__dest_node[0],self.__dest_node[1])
+                    self.__stop_iteration = False
+                    found_node = True
+                    break
+            if not found_node:
+                self.__revert_home = True
+            else:
+                self.__revert_home = False
+        if self.__isInLoop == True: 
+            print("**STILL IN LOOP**")
+            gotnode = self.getLoopBreakingNode(stench, breeze, glitter, bump, scream)
+            return self.__go_to_dest(stench, breeze, glitter, bump, scream, gotnode[0], gotnode[1], False)
+        if not breeze and not bump:
+            if  not stench or (stench and self.__dead_wump):
+                self.__UpdateSafeTileManual(self.__x_tile, self.__y_tile)
+        if not self.__shot_arrow and self.__pitless_wump and not self.__dead_wump:
+            if self.__Facing_Wump():
+                self.__numberOfArrows-=1
+                if self.__numberOfArrows < 1 :
+                    self.__shot_arrow = True
+                self.__print_debug_info(stench, breeze, glitter, bump, scream)
+                return Agent.Action.SHOOT
+            else:
+                return self.__Align_To_Wump(stench, breeze, glitter, bump, scream)
+        if breeze:
+            self.__Update_Potential_Pit_Locations()
+        if stench and not self.__found_wump:
+            self.__Update_Potential_Wump_Locations()
+        if (breeze or bump or (stench and not self.__dead_wump)):
+            if bump:
+                if self.__dir == 'E':
+                    self.__x_border = self.__x_tile
+                    for i in self.__safe_tiles:
+                        if i[0] > self.__x_border:
+                            self.__safe_tiles.remove(i)
+                elif self.__dir == 'N':
+                    self.__y_border = self.__y_tile
+                    for i in self.__safe_tiles:
+                        if i[1] > self.__y_border:
+                            self.__safe_tiles.remove(i)
+
+            if (not self.__in_danger) or (self.__in_danger and (self.__last_danger != (self.__x_tile,self.__y_tile)) or self.__dest_node not in self.__safe_tiles):
+                found_node = False
+                for i in range(len(self.__safe_tiles)):
+                    node = self.__safe_tiles[len(self.__safe_tiles)-i-1]
+                    if node not in self.__tile_history:
+                        self.__dest_node = (node[0], node[1])
+                        self.__dest_path = self.__optimal_home_path(self.__x_tile,self.__y_tile,self.__dest_node[0],self.__dest_node[1])
+                        self.__stop_iteration = False
+                        found_node = True
+                        break
+                self.__in_danger = True
+                self.__last_danger = (self.__x_tile,self.__y_tile)
+                if not found_node:
+                    print('loop217')
+                    self.__revert_home = True
+        else:
+            self.__in_danger = False
+        if not self.__revert_home:
+            if self.__moves > 1:
+                if self.__getExploredAllSafeNodes():
+                    print('loop225')
+                    self.__revert_home = True
+        if glitter == True:
+            self.__numberOfGolds -= 1
+            if self.__numberOfGolds < 1:#Glitter Check
+                self.__has_gold = True
+                self.__revert_home = True
+            self.__move_history.append("GRAB")
+            self.__print_debug_info(stench, breeze, glitter, bump, scream)
+            return Agent.Action.GRAB
+        elif self.__has_gold == True and self.__x_tile == 1 and self.__y_tile == 1: #ClimbToWin
+            self.__move_history.append("CLIMB")
+            return Agent.Action.CLIMB
+        elif self.__moves == 1 and breeze == True: #FirstMoveCheck
+            curNode = self.Node(self.__x_tile,self.__y_tile)
+            nextNode = self.Node(2, 1)
+            return self.__NodeToNode(nextNode,curNode)
+        elif self.__moves == 1 and stench == True:
+            self.__numberOfArrows-=1
+            if self.__numberOfArrows < 1 :
+                self.__shot_arrow = True
+            self.__print_debug_info(stench, breeze, glitter, bump, scream)
+            return Agent.Action.SHOOT
+
+        elif self.__revert_home == True:
+            print("**********Retern to HOME********")
+            if not self.__has_gold:
+                self.__isInLoop = True
+                print("isinloop turned True")
+                self.__revert_home = False
+                gotnode = self.getLoopBreakingNode(stench, breeze, glitter, bump, scream)
+                self.__dest_node = (gotnode[0], gotnode[1])
+                return self.__go_to_dest(stench, breeze, glitter, bump, scream, gotnode[0], gotnode[1], True)
+
+            else:
+                destination = (1,1)
+                return self.__go_to_dest( stench, breeze, glitter, bump, scream, 1,1, True)
+
+
+        if self.__dest_node[0] == self.__x_tile and self.__dest_node[1] == self.__y_tile:
+            self.__dest_node = (self.__dest_node[0] + (self.__dir_to_coordinate(self.__dir)[0]),
+                                self.__dest_node[1] + (self.__dir_to_coordinate(self.__dir)[1]))
+            curNode = self.Node(self.__x_tile,self.__y_tile)
+            nextNode = self.Node(self.__dest_node[0], self.__dest_node[1])
+            self.__print_debug_info(stench, breeze, glitter, bump, scream)
+            return self.__NodeToNode(nextNode,curNode)
+        else:
+            curNode = self.Node(self.__x_tile,self.__y_tile)
+            for i in range(len(self.__dest_path)):
+                if self.__dest_path[i] == curNode.getCurrent():
+                    index = i
+                    break
+            nextNode = self.Node(self.__dest_path[index+1][0],self.__dest_path[index+1][1])
+            self.__print_debug_info(stench, breeze, glitter, bump, scream)
+            return self.__NodeToNode(nextNode,curNode)
+
+
+    def __go_to_dest(self,stench, breeze, glitter, bump, scream, destx, desty, first_time):
+        if (first_time == True):
+            self.__dest_node = (destx, desty)
+        if len(self.__path_home) == 0:
+            self.__path_home = self.__optimal_home_path(self.__x_tile,self.__y_tile,self.__dest_node[0],self.__dest_node[1])
+            self.__stop_iteration = False
+        elif self.__x_tile == 1 and self.__y_tile == 1 and self.__revert_home == True:
+            self.__move_history.append("CLIMB")
+            return Agent.Action.CLIMB
+        elif self.__x_tile == self.__dest_node[0] and self.__y_tile == self.__dest_node[1] and self.__isInLoop == True:
+            print("reached destination ", self.__dest_node[0], self.__dest_node[1], " inloop" )
+            self.__isInLoop = False
+            self.__dest_node = (self.__dest_node[0] + (self.__dir_to_coordinate(self.__dir)[0]),
+                                self.__dest_node[1] + (self.__dir_to_coordinate(self.__dir)[1]))
+            curNode = self.Node(self.__x_tile,self.__y_tile)
+            nextNode = self.Node(self.__dest_node[0], self.__dest_node[1])
+            self.__print_debug_info(stench, breeze, glitter, bump, scream)
+            self.__safe_tiles.append(self.__dest_node)
+            return self.__NodeToNode(nextNode,curNode)
+        curNode = self.Node(self.__x_tile,self.__y_tile)
+        index = 0
+        for i in range(len(self.__path_home)):
+            if self.__path_home[i] == curNode.getCurrent():
+                index = i
+                break
+        try:
+            nextNode = self.Node(self.__path_home[i+1][0],self.__path_home[i+1][1])
+        except:
+            self.__path_home = self.__optimal_home_path(self.__x_tile,self.__y_tile,self.__dest_node[0],self.__dest_node[1])
+            self.__stop_iteration = False
+            curNode = self.Node(self.__x_tile,self.__y_tile)
+            if(len(self.__path_home)>1):
+                index = 0
+                for i in range(len(self.__path_home)):
+                    if self.__path_home[i] == curNode.getCurrent():
+                        index = i
+                        break
+                nextNode = self.Node(self.__path_home[i+1][0],self.__path_home[i+1][1])
+            else: 
+                self.__dest_node = (destx + (self.__dir_to_coordinate(self.__dir)[0]),
+                                desty + (self.__dir_to_coordinate(self.__dir)[1]))
+                curNode = self.Node(self.__x_tile,self.__y_tile)
+                nextNode = self.Node(self.__dest_node[0], self.__dest_node[1])
+                
+
+        self.__print_debug_info(stench, breeze, glitter, bump, scream)
+        return self.__NodeToNode(nextNode,curNode)
+
+
     def getLoopBreakingNode(self,stench, breeze, glitter, bump, scream):
         possiblenodes = []
         for i in range(len(self.__tile_history)):
