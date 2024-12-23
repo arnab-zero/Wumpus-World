@@ -154,3 +154,59 @@ class WumpusWorld():
     
     def __generateRandomInt ( self, limit ):
         return random.randrange(limit)
+    
+    def __addPit ( self, c, r ):
+        if self.__isInBounds(c, r):
+            self.__board[c][r].pit = True
+            self.__addBreeze ( c+1, r )
+            self.__addBreeze ( c-1, r )
+            self.__addBreeze ( c, r+1 )
+            self.__addBreeze ( c, r-1 )
+    
+
+    def __addWumpus ( self, c, r ):
+        if self.__isInBounds(c, r):
+            self.__board[c][r].wumpus = True
+            self.__addStench ( c+1, r )
+            self.__addStench ( c-1, r )
+            self.__addStench ( c, r+1 )
+            self.__addStench ( c, r-1 )
+
+
+    
+
+    # World Printing Functions
+    def __printWorldInfo ( self ):
+        self.__printBoardInfo()
+        self.__printAgentInfo()
+    
+
+    def __printBoardInfo ( self ):
+        for r in range (self.__rowDimension-1, -1, -1):
+            for c in range (self.__colDimension):
+                self.__printTileInfo( c, r )
+            print("")
+            print("")
+
+
+    def __printAgentInfo ( self ):
+        print ( "Score: "   + str(self.__score) )
+        print ( "AgentX: "  + str(self.__agentX) )
+        print ( "AgentY: "  + str(self.__agentY) )
+        self.__printDirectionInfo()
+        self.__printActionInfo()
+        self.__printPerceptInfo()
+
+    
+    def __printDirectionInfo ( self ):
+        if self.__agentDir == 0:
+            print ( "AgentDir: Right" )
+        elif self.__agentDir == 1:
+            print ( "AgentDir: Down" )
+        elif self.__agentDir == 2:
+            print ( "AgentDir: Left" )
+        elif self.__agentDir == 3:
+            print ( "AgentDir: Up" )
+        else:
+            print ( "AgentDir: Invalid" )
+
