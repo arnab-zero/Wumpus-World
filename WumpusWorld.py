@@ -1,5 +1,6 @@
 from Agent import Agent
 from xml.dom import NotFoundErr
+import random
 
 class WumpusWorld():
     
@@ -113,4 +114,43 @@ class WumpusWorld():
         
         print(tileString.rjust(8 ), end="")
 
+
+    def __printActionInfo ( self ):
+        if self.__lastAction == Agent.Action.TURN_LEFT:
+            print ( "Last Action: Turned Left" )
+        elif self.__lastAction == Agent.Action.TURN_RIGHT:
+            print ( "Last Action: Turned Right")
+        elif self.__lastAction == Agent.Action.FORWARD:
+            print ( "Last Action: Moved Forward")
+        elif self.__lastAction == Agent.Action.SHOOT:
+            print ( "Last Action: Shot the Arrow")
+        elif self.__lastAction == Agent.Action.GRAB:
+            print ( "Last Action: Grabbed")
+        elif self.__lastAction == Agent.Action.CLIMB:
+            print ( "Last Action: Climbed")
+        else:
+            print ( "Last Action: Invalid")
+
+
+    def __printPerceptInfo ( self ):
+        perceptString = "Percepts: "
         
+        if self.__board[self.__agentX][self.__agentY].stench: 
+            perceptString += "Stench, "
+        if self.__board[self.__agentX][self.__agentY].breeze: 
+            perceptString += "Breeze, "
+        if self.__board[self.__agentX][self.__agentY].gold:   
+            perceptString += "Glitter, "
+        if self.__bump:                         
+            perceptString += "Bump, "
+        if self.__scream:                       
+            perceptString += "Scream"
+        
+        if perceptString[-1] == ' 'and perceptString[-2] == ',':
+            perceptString = perceptString[:-2]
+        
+        print(perceptString)
+
+    
+    def __generateRandomInt ( self, limit ):
+        return random.randrange(limit)
