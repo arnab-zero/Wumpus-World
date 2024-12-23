@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 
 class Agent ( metaclass=ABCMeta ):
-
+    
     class Action ( Enum ):
         TURN_LEFT  = 1
         TURN_RIGHT = 2
