@@ -474,3 +474,129 @@ class AI ( Agent ):
                 self.__dest_node = (Path[-1][0],Path[-1][1])
             return Path
 
+
+    def __potential_path(self,x,y,memory,x_target,y_target, iteration):
+        node = self.Node(x,y)
+        explored = []
+        explored.extend(memory)
+        if self.__stop_iteration == True:
+            if iteration >= self.__stopped_on_iteration:
+                return explored
+        if node.getCurrent() == (x_target,y_target):
+            explored.append(node.getCurrent())
+            self.__stop_iteration = True
+            self.__stopped_on_iteration = iteration
+            return explored
+        elif node.getCurrent() not in self.__safe_tiles:
+            explored.append(node.getCurrent())
+            return explored
+        elif node.getCurrent() in explored:
+            return explored
+        elif iteration >= 15:
+            return explored
+        else:
+            explored.append(node.getCurrent())
+            NNodes = self.__potential_path(node.getNorth()[0],node.getNorth()[1],explored,x_target,y_target,iteration+1)
+            ENodes = self.__potential_path(node.getEast()[0],node.getEast()[1],explored,x_target,y_target,iteration+1)
+            SNodes = self.__potential_path(node.getSouth()[0],node.getSouth()[1],explored,x_target,y_target,iteration+1)
+            WNodes = self.__potential_path(node.getWest()[0],node.getWest()[1],explored,x_target,y_target,iteration+1)
+            Paths = [NNodes, ENodes, SNodes, WNodes]
+            null_paths = []
+            for i in range(len(Paths)):
+                if len(Paths[i]) != 0 and Paths[i][-1] != (x_target,y_target):
+                    null_paths.append(i)
+            null_close = False
+            if len(null_paths) != 4:
+               for i in null_paths:
+                   Paths[i].clear()
+            else:
+                null_close = True
+            
+            if null_close:
+                best_node = (99,99)
+                ind = 0
+                for i in range(len(Paths)):
+                    if len(Paths[i]) != 0:
+                        if self.__NodeDifference(Paths[i][-1][0],Paths[i][-1][1],x_target,y_target) < self.__NodeDifference(best_node[0],best_node[1],x_target,y_target):
+                            best_node = (Paths[i][-1][0],Paths[i][-1][1])
+                            ind = i
+                for i in range(len(Paths)):
+                    if i!=ind:
+                        Paths[i].clear()
+            BestPath = []    
+            for i in range(len(Paths)):
+                if len(Paths[i]) != 0:
+                    if len(BestPath) == 0:
+                        BestPath = Paths[i]
+                    elif len(Paths[i]) < len(BestPath):
+                        BestPath = Paths[i]
+            return BestPath
+                
+    def __NodeDifference(self,x1,y1,x2,y2):
+        x_score = x2-x1
+        y_score = y2-y1
+
+        if x_score<0:
+            x_score = x_score*-1
+        if y_score<0:
+            y_score = y_score*-1
+        node_score = x_score+y_score
+        return node_score
+        
+    def __dir_to_coordinate(self, direction):
+        if direction == 'N':
+            return (0,1)
+        elif direction == 'E':
+            return (1,0)
+        elif direction == 'S':
+            return (0,-1)
+        elif direction == 'W':
+            return (-1,0)
+        else:
+            return (0,1)
+
+    def __check_bump(self,bump):
+        if(bump==True):
+           self.__x_tile -= self.__dir_to_coordinate(self.__dir)[0]
+           self.__y_tile -= self.__dir_to_coordinate(self.__dir)[1]
+           if self.__dir == 'N':
+               self.__yBorder = self.__y_tile
+           elif self.__dir == 'E':
+               self.__xBorder = self.__x_tile
+
+    def __update_history_tiles(self):
+        if len(self.__tile_history) == 0:
+            self.__tile_history.append((self.__x_tile,self.__y_tile))
+        elif self.__tile_history[-1]!=(self.__x_tile,self.__y_tile):
+            self.__tile_history.append((self.__x_tile,self.__y_tile))
+        if (self.__x_tile,self.__y_tile) not in self.__safe_tiles:
+            self.__safe_tiles.append((self.__x_tile,self.__y_tile))
+
+    def __print_debug_info(self, stench, breeze, glitter, bump, scream ):
+        """
+        print("\n---------Debug Info--------------------")
+        print("DIRECTION: "+str(self.__dir))
+        print("MOVES: "+str(self.__moves))
+        print("SAFE TILES: "+str(self.__safe_tiles))
+        print("HISTORY TILES: "+str(self.__tile_history))
+        print("MOVE HISTORY: "+str(self.__move_history))
+        print("COORDINATE: "+str((self.__x_tile,self.__y_tile)))
+        print("STENCH: "+str(stench))
+        print("BREEZE: "+str(breeze))
+        print("GLITTER: "+str(glitter))
+        print("BUMP: "+str(bump))
+        print("SCREAM: "+str(scream))
+        print("XBoarder: "+ str(self.__x_border))
+        print("YBoarder: "+str(self.__y_border ))
+        print("Path Home: "+str(self.__path_home))
+        print("Destination Path: "+str(self.__dest_path ))
+        print("Destination Node: "+str(self.__dest_node))
+        print("Found Wumpus: "+str(self.__found_wump))
+        print("Potential Wump Nodes: "+str(self.__potential_wump_nodes))
+        print("Stench Nodes: "+str(self.__stench_nodes))
+        print("Potential Pit Nodes: "+str(self.__potential_pit_nodes))
+        print("Breeze Nodes: "+str(self.__breeze_nodes))
+        print("Pitless Wump: "+str(self.__pitless_wump))
+        print("---------------------------------------\n")
+        """
+        pass
