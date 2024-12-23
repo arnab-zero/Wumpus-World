@@ -28,6 +28,4 @@ def game():
         pygame.quit()
 
 game()
-You sent
-Okk
 
