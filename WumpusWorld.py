@@ -323,6 +323,10 @@ class WumpusWorld():
         self.__printDirectionInfo()
         self.__printActionInfo()
         self.__printPerceptInfo()
+
+    def __printWorldInfo ( self ):
+        self.__printBoardInfo()
+        self.__printAgentInfo()
     
     def __printDirectionInfo ( self ):
         if self.__agentDir == 0:
