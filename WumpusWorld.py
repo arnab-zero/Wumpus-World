@@ -39,3 +39,23 @@ class WumpusWorld():
             
             self.__board = [[self.__Tile() for j in range(self.__colDimension)] for i in range(self.__rowDimension)]
             self.__addBoardFeatures()
+
+
+
+    def __addGold ( self, c, r ):
+        if self.__isInBounds(c, r):
+            self.__board[c][r].gold = True
+    
+
+    def __addStench ( self, c, r ):
+        if self.__isInBounds(c, r):
+            self.__board[c][r].stench = True
+    
+
+    def __addBreeze ( self, c, r ):
+        if self.__isInBounds(c, r):
+            self.__board[c][r].breeze = True
+    
+
+    def __isInBounds ( self, c, r ):
+        return c < self.__colDimension and r < self.__rowDimension and c >= 0 and r >= 0
