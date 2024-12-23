@@ -59,3 +59,58 @@ class WumpusWorld():
 
     def __isInBounds ( self, c, r ):
         return c < self.__colDimension and r < self.__rowDimension and c >= 0 and r >= 0
+    
+    def __addPit ( self, c, r ):
+        if self.__isInBounds(c, r):
+            self.__board[c][r].pit = True
+            self.__addBreeze ( c+1, r )
+            self.__addBreeze ( c-1, r )
+            self.__addBreeze ( c, r+1 )
+            self.__addBreeze ( c, r-1 )
+    
+
+    def __addWumpus ( self, c, r ):
+        if self.__isInBounds(c, r):
+            self.__board[c][r].wumpus = True
+            self.__addStench ( c+1, r )
+            self.__addStench ( c-1, r )
+            self.__addStench ( c, r+1 )
+            self.__addStench ( c, r-1 )
+
+
+    def __printBoardInfo ( self ):
+        for r in range (self.__rowDimension-1, -1, -1):
+            for c in range (self.__colDimension):
+                self.__printTileInfo( c, r )
+            print("")
+            print("")
+
+
+    def __printTileInfo ( self, c, r ):
+        tileString = ""
+        
+        if self.__board[c][r].pit:    tileString += "P"
+        if self.__board[c][r].wumpus: tileString += "W"
+        if self.__board[c][r].gold:   tileString += "G"
+        if self.__board[c][r].breeze: tileString += "B"
+        if self.__board[c][r].stench: tileString += "S"
+        
+        if self.__agentX == c and self.__agentY == r:
+            if self.__agentDir == 0:
+                tileString += ">"
+            
+            elif self.__agentDir == 1:
+                tileString += "v"
+            
+            elif self.__agentDir == 2:
+                tileString += "<"
+            
+            elif self.__agentDir == 3:
+                tileString += "^"
+            #tileString += "@"
+        
+        tileString += "."
+        
+        print(tileString.rjust(8 ), end="")
+
+        
