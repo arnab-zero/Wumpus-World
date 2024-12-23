@@ -21,7 +21,7 @@ def game():
         screen.fill((50, 50, 50))
         main()
     elif choice == 2:
-        with open("GameFiles/gameFile.txt", "r") as file:
+        with open("custom_world/gameFile.txt", "r") as file:
             screen.fill((50, 50, 50))
             main(file)
     elif choice == 3:
